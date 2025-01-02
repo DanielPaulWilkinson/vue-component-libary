@@ -4,21 +4,22 @@ import StarRating from '@/components/fields/StarRating.vue';
 import Text from '@/components/fields/Text.vue';
 import Textarea from '@/components/fields/Textarea.vue';
 import Question from '@/components/layout/Question.vue';
-import Modal from '@/components/Modal.vue';
 import RadioInput from '@/components/fields/RadioInput.vue';
 import FillCoffee from '@/components/layout/FillCoffee.vue';
 import { reactive } from 'vue';
 import { useAppStore } from '@/stores/app';
 import CheckBox from '@/components/fields/CheckBox.vue';
-import { brewFormValidator } from '@/validation/validation';
+import { coffeeReviewValidator } from '@/validation/validation';
 import useVuelidate from '@vuelidate/core';
 import Validation from '@/components/fields/Validation.vue';
-
+import Dialog from '@/components/layout/Dialog.vue';
+import Modal from '@/components/layout/Modal.vue';
 
 const store = useAppStore();
 const v$ = useVuelidate();
 
 const state = reactive({
+    dialogState: false,
     modalState: false,
 })
 
@@ -33,7 +34,7 @@ const mockSubmitFeedback = async () => {
 
 }
 
-const validator = brewFormValidator(store);
+const validator = coffeeReviewValidator(store);
 
 </script>
 <template>
@@ -47,13 +48,17 @@ const validator = brewFormValidator(store);
                         <h4>Coffee Bought</h4>
 
                         <Question name="coffeeTypes" tooltip="" label="Coffee selection" class="col-12">
-                            <RadioSet id="coffee-types" name="coffeeTypes" v-model="store.coffeeType" :validation="validator.coffeeType">
-                                <RadioInput id="espresso" value="Espresso" title="Espresso" v-model="store.coffeeType" radio-type="block" />
-                                <RadioInput id="cappuccino" value="Cappuccino" title="Cappuccino" v-model="store.coffeeType" radio-type="block" />
+                            <RadioSet id="coffee-types" name="coffeeTypes" v-model="store.coffeeType"
+                                :validation="validator.coffeeType">
+                                <RadioInput id="espresso" value="Espresso" title="Espresso" v-model="store.coffeeType"
+                                    radio-type="block" />
+                                <RadioInput id="cappuccino" value="Cappuccino" title="Cappuccino"
+                                    v-model="store.coffeeType" radio-type="block" />
                             </RadioSet>
                         </Question>
 
-                        <Validation v-if="v$.$error" :model-value="store.coffeeType" :validation="validator.coffeeType" />
+                        <Validation v-if="v$.$error" :model-value="store.coffeeType"
+                            :validation="validator.coffeeType" />
 
                         <h4 class="mt-4">Experience</h4>
 
@@ -70,9 +75,9 @@ const validator = brewFormValidator(store);
 
                         <h4 class="mt-4">Review</h4>
 
-                        <Question name="comments" label="Comments (Optional)" tooltip="Any other thoughts?" class="col-12">
-                            <Textarea id="notes" type="text" v-model="store.notes"
-                                :validation="validator.notes" />
+                        <Question name="comments" label="Comments (Optional)" tooltip="Any other thoughts?"
+                            class="col-12">
+                            <Textarea id="notes" type="text" v-model="store.notes" :validation="validator.notes" />
                         </Question>
                         <Question name="Overall" label="Overall rating"
                             tooltip="This is the overall rating of the coffee" class="col-12">
@@ -85,13 +90,19 @@ const validator = brewFormValidator(store);
                                 <p>Thank you for choosing our coffee shop! We appreciate your custom and hope you
                                     enjoyed your experience with us. Your feedback is invaluable in helping us improve
                                     our service and offerings. We look forward to serving you again soon!</p>
+
+                            </div>
+                            <div class="view-menu-message">
+                                <p>We invite you to explore our menu and discover the wide variety of coffee and
+                                    treats we offer next time you're in the village. Click <a href=""
+                                        @click.prevent="state.modalState = true">here</a> to view our menu.</p>
                             </div>
                             <Question name="Overall" label="" tooltip="" class="col-12 mt-4">
                                 <CheckBox id="rating" name="" v-model="store.termsAndConditions"
                                     :checked="store.termsAndConditions ?? false" :disabled="true"
                                     :validation="validator.termsAndConditions">
                                     <template #label>
-                                        Please review our <a href="" @click.prevent="state.modalState = true">terms &
+                                        Please review our <a href="" @click.prevent="state.dialogState = true">terms &
                                             conditions</a> to submit your feedback.
                                     </template>
                                 </CheckBox>
@@ -117,8 +128,7 @@ const validator = brewFormValidator(store);
                 </div>
             </div>
         </div>
-        <Modal :id="`suggestion-modal`" :visible="state.modalState" :showCloseButton="false"
-            title="Please accept the terms and conditions...">
+        <Dialog :id="`suggestion-modal`" :visible="state.dialogState" title="Please accept the terms and conditions...">
             <template #body>
                 <div class="modal-body">
                     <p>
@@ -129,12 +139,33 @@ const validator = brewFormValidator(store);
             <template #footer>
                 <div class="modal-footer">
                     <button class="btn btn-primary" type="button"
-                        @click.prevent="state.modalState = false; store.termsAndConditions = true;">
+                        @click.prevent="state.dialogState = false; store.termsAndConditions = true;">
                         Accept
                     </button>
                 </div>
             </template>
+        </Dialog>
+        <Modal :id="`coffee-shop-menu`" :visible="state.modalState" :cross="true" header="Menu"
+            @close="state.modalState = false">
+            <template #body>
+                <div class="modal-body">
+                    <p>
+                        Menu coming soon!
+                    </p>
+                </div>
+            </template>
+            <template #footer>
+                <button class="btn btn-primary" type="button"
+                        @click.prevent="state.modalState = false;">
+                        Close
+                    </button>
+                    <button class="btn btn-primary" type="button"
+                        @click.prevent="state.modalState = false;">
+                        Looks good
+                    </button>
+            </template>
         </Modal>
+
     </div>
 </template>
 <style>
@@ -146,7 +177,17 @@ const validator = brewFormValidator(store);
     margin-top: 20px;
 }
 
-.thank-you-message p {
+.thank-you-message,
+.view-menu-message {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.thank-you-message p,
+.view-menu-message p {
     margin: 0;
     font-size: 16px;
     color: #495057;

@@ -4,9 +4,7 @@ const props = withDefaults(defineProps<{
     id: string;
     visible: boolean;
     title?: string | undefined;
-    showCloseButton?: boolean;
 }>(), {
-    showCloseButton: true,
     title: undefined,
 });
 
@@ -19,15 +17,12 @@ watch(() => props.visible, (open) => {
 </script>
 <template>
     <Transition>
-    <dialog :id="id" ref="dialog" role="modal" @click.prevent="close" :open="props.visible">
+    <dialog :id="id" ref="dialog" role="modal" :open="props.visible">
         <div class="dialog-content">
             <div v-if="props.title" class="dialog-header">
                 <h5 class="dialog-title">
                     {{ title }}
                 </h5>
-                <button v-if="showCloseButton" type="button" class="dialog-close" aria-label="Close" @click.prevent="close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
             </div>
             <div v-else>
                 <slot name="header" />
